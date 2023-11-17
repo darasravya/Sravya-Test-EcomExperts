@@ -8,6 +8,76 @@
   Usage:
   {% render 'cart-notification' %}
 {% endcomment %}
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+  var cartItems = {{ cart.items | json }};
+
+    // Check if 'hand bag' is in the cart
+    var bagInCart = cartItems.some(function(item) {
+      return item.title === 'Hand Bag - Black / Medium';
+    });
+
+    // Check if 'soft_winter' is in the cart
+    var softWinterJacketInCart = cartItems.some(function(item) {
+      return item.title === 'Soft Winter Jacket';
+    });
+
+    if (bagInCart && !softWinterJacketInCart) {
+        fetch('/cart/add.js', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            id: 42492901851318, // variant_id of soft winter jacket
+            quantity: 1,
+          }),
+        })
+        .then(function(response) {
+          console.log(response)
+          return response.json();
+        })
+        .then(function(data) {
+          console.log('Product added to cart:', data);
+          window.location.href = '/cart';
+        })
+        .catch(function(error) {
+          console.error('Error adding product to cart:', error);
+        });
+    }
+
+    // check if bag is removed from the cart
+    var bagRemoved = cartItems.every(function(item) {
+      return !(['Hand Bag - Black / Small', 'Hand Bag - Black / Medium'].includes(item.title));
+    });
+  
+    // If 'bag' is removed, remove 'soft winter jacket' from the cart
+    if (bagRemoved && softWinterJacketInCart) {
+      var softWinterVariantId = parseInt(cartItems.find(function(item) {
+        return item.title === 'Soft Winter Jacket';
+      }).variant_id);
+
+      fetch('/cart/update.js', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ updates : { {{ 42492901851318 }}: 0 }}), //variant_id of soft winter jacket
+      })
+      .then(function(response) {
+        return response.json();
+      })
+      .then(function(data) {
+        console.log('Product removed from cart:', data);
+        window.location.href = '/cart';
+      })
+      .catch(function(error) {
+        console.error('Error removing product from cart:', error);
+      });
+    }
+  });
+</script>
+
 
 <cart-notification>
   <div class="cart-notification-wrapper{% if desktop_menu_type != 'drawer' %} page-width{% endif %}">
