@@ -5,13 +5,15 @@
   - product: {Object} product object.
   - option: {Object} current product_option object.
   - block: {Object} block object.
+  - picker_type: 'string'
 
 
   Usage:
   {% render 'product-variant-options',
     product: product,
     option: option,
-    block: block
+    block: block,
+    picker_type: string,
   %}
 {% endcomment %}
 {%- liquid
@@ -45,7 +47,7 @@
     endfor
   -%}
 
-  {%- if block.settings.picker_type == 'button' -%}
+  {%- if picker_type == 'button' -%}
     <input
       type="radio"
       id="{{ section.id }}-{{ option.position }}-{{ forloop.index0 }}"
@@ -59,11 +61,16 @@
         class="disabled"
       {% endif %}
     >
-    <label for="{{ section.id }}-{{ option.position }}-{{ forloop.index0 }}">
-      {{ value -}}
-      <span class="visually-hidden">{{ 'products.product.variant_sold_out_or_unavailable' | t }}</span>
-    </label>
-  {%- elsif block.settings.picker_type == 'dropdown' -%}
+    {% if option.name == "Color" %}
+      <label for="{{ section.id }}-{{ option.position }}-{{ forloop.index0 }}" id="{{ product.variants[forloop.index0].id }}" attr-value='{{ value }}' style="border-radius: 50%; height: 50px !important; width: 50px !important; padding: 18px; background-image: url('{% if forloop.index0 == 0 %}{{ product.metafields.custom.variant_image_1| img_url: 'master' }}{% elsif forloop.index0 == 1 %}{{ product.metafields.custom._variant_image_2 | img_url: 'master' }}{% elsif forloop.index0 == 2 %}{{ product.metafields.custom._variant_image_3 | img_url: 'master' }}{% endif %}'); background-size: cover; background-position: center;">
+      </label>
+    {% else %}
+      <label for="{{ section.id }}-{{ option.position }}-{{ forloop.index0 }}">
+        {{ value -}}
+        <span class="visually-hidden">{{ 'products.product.variant_sold_out_or_unavailable' | t }}</span>
+      </label>
+    {% endif %}
+  {%- elsif picker_type == 'dropdown' -%}
     <option
       value="{{ value | escape }}"
       {% if option.selected_value == value %}
